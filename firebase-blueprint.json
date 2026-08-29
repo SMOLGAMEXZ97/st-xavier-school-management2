@@ -1,0 +1,580 @@
+{
+  "entities": {
+    "User": {
+      "title": "Application User Profile",
+      "description": "User authorization profile stored under /users/{firebaseUid} linking Firebase Auth to role permissions.",
+      "type": "object",
+      "properties": {
+        "role": {
+          "type": "string",
+          "enum": ["super_admin", "staff", "accountant", "exam_editor", "student"],
+          "description": "Assigned authorization role"
+        },
+        "studentId": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Database key of linked student profile for student role"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "maxLength": 100,
+          "description": "Primary login email"
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Full name or designation"
+        },
+        "mustChangePassword": {
+          "type": "boolean",
+          "description": "Flag forcing temporary password reset on initial student sign-in"
+        },
+        "active": {
+          "type": "boolean",
+          "description": "Account status flag"
+        },
+        "createdAt": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Creation timestamp ISO string"
+        },
+        "updatedAt": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Last updated timestamp ISO string"
+        }
+      },
+      "required": ["role", "email", "displayName", "mustChangePassword", "active", "createdAt", "updatedAt"]
+    },
+    "Student": {
+      "title": "Student Official Record",
+      "description": "Enrolled student master record with admission identification, academic division, and guardian contact.",
+      "type": "object",
+      "properties": {
+        "admissionNumber": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 50,
+          "description": "Unique institutional admission number for spreadsheet matching"
+        },
+        "firstName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60,
+          "description": "Student first name"
+        },
+        "lastName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60,
+          "description": "Student last name"
+        },
+        "dateOfBirth": {
+          "type": "string",
+          "maxLength": 30,
+          "description": "Date of birth (YYYY-MM-DD)"
+        },
+        "gender": {
+          "type": "string",
+          "maxLength": 20,
+          "description": "Gender"
+        },
+        "className": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 50,
+          "description": "Enrolled grade / class"
+        },
+        "section": {
+          "type": "string",
+          "maxLength": 20,
+          "description": "Class section"
+        },
+        "rollNumber": {
+          "type": "string",
+          "maxLength": 30,
+          "description": "Class roll number"
+        },
+        "studentEmail": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Institutional or student email"
+        },
+        "authUid": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Linked Firebase Auth UID"
+        },
+        "admissionDate": {
+          "type": "string",
+          "maxLength": 30,
+          "description": "Date of formal enrollment"
+        },
+        "guardianName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Parent or guardian name"
+        },
+        "guardianPhone": {
+          "type": "string",
+          "minLength": 7,
+          "maxLength": 20,
+          "description": "Parent emergency contact phone"
+        },
+        "guardianEmail": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Parent email"
+        },
+        "address": {
+          "type": "string",
+          "maxLength": 300,
+          "description": "Residential address"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["active", "inactive", "transferred", "graduated"],
+          "description": "Enrollment status"
+        },
+        "createdAt": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Creation timestamp ISO string"
+        },
+        "updatedAt": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Last updated timestamp ISO string"
+        }
+      },
+      "required": ["admissionNumber", "firstName", "lastName", "className", "guardianName", "guardianPhone", "status"]
+    },
+    "Fee": {
+      "title": "Student Fee Assessment",
+      "description": "Institutional fee due ledger record generated per student and term.",
+      "type": "object",
+      "properties": {
+        "studentId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "description": "Database document ID of the student"
+        },
+        "academicYear": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 20,
+          "description": "Academic fiscal session (e.g. 2025-2026)"
+        },
+        "feeType": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Fee category (Tuition, Admission, Examination, Transport)"
+        },
+        "term": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Applicable quarter or term"
+        },
+        "amountDue": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Base total amount due"
+        },
+        "discount": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Approved concession or scholarship discount"
+        },
+        "dueDate": {
+          "type": "string",
+          "maxLength": 30,
+          "description": "Payment due date"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "partially_paid", "paid", "overdue"],
+          "description": "Fee clearance status"
+        },
+        "createdAt": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Update timestamp"
+        }
+      },
+      "required": ["studentId", "academicYear", "feeType", "amountDue", "status"]
+    },
+    "Payment": {
+      "title": "Fee Payment Transaction",
+      "description": "Individual payment transaction record linked to a student and fee invoice.",
+      "type": "object",
+      "properties": {
+        "studentId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "description": "Student document ID"
+        },
+        "feeId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "description": "Linked Fee document ID"
+        },
+        "amount": {
+          "type": "number",
+          "minimum": 0.01,
+          "description": "Amount transacted"
+        },
+        "method": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Payment mode (Cash, UPI, Bank Transfer, Card)"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["success", "pending", "failed", "refunded"],
+          "description": "Transaction status"
+        },
+        "transactionId": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Receipt reference or gateway transaction code"
+        },
+        "gateway": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Payment handler"
+        },
+        "paidAt": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Payment completion timestamp"
+        },
+        "createdAt": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Creation timestamp"
+        }
+      },
+      "required": ["studentId", "feeId", "amount", "method", "status", "transactionId"]
+    },
+    "Exam": {
+      "title": "Academic Examination Schedule",
+      "description": "Examination definition and status.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 150,
+          "description": "Examination title"
+        },
+        "academicYear": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 20,
+          "description": "Academic year"
+        },
+        "className": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 50,
+          "description": "Target class"
+        },
+        "section": {
+          "type": "string",
+          "maxLength": 20,
+          "description": "Target section"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["draft", "scheduled", "ongoing", "completed", "published"],
+          "description": "Exam lifecycle status"
+        },
+        "createdAt": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Creation timestamp"
+        },
+        "publishedAt": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Public release timestamp"
+        }
+      },
+      "required": ["name", "academicYear", "className", "status"]
+    },
+    "Result": {
+      "title": "Student Examination Score Record",
+      "description": "Academic report card entry storing subject breakdown, total scores, and grade.",
+      "type": "object",
+      "properties": {
+        "examId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "description": "Parent Exam document ID"
+        },
+        "studentId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "description": "Student document ID"
+        },
+        "subjects": {
+          "type": "object",
+          "description": "Map of subject names to score breakdowns"
+        },
+        "totalMarks": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Sum of marks obtained"
+        },
+        "percentage": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Percentage score"
+        },
+        "grade": {
+          "type": "string",
+          "maxLength": 10,
+          "description": "Final letter grade"
+        },
+        "published": {
+          "type": "boolean",
+          "description": "Flag determining whether results are visible to the student"
+        },
+        "createdAt": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Last modified timestamp"
+        }
+      },
+      "required": ["examId", "studentId", "subjects", "totalMarks", "percentage", "grade", "published"]
+    },
+    "Notice": {
+      "title": "School Notice",
+      "description": "Official academic circular or public announcement from the school administration.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "description": "Notice headline"
+        },
+        "category": {
+          "type": "string",
+          "enum": ["Academics", "Examinations", "Events", "Holidays", "Circulars"],
+          "description": "Notice category"
+        },
+        "date": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 30,
+          "description": "Published date string (YYYY-MM-DD)"
+        },
+        "isUrgent": {
+          "type": "boolean",
+          "description": "Flag for urgent priority"
+        },
+        "isNew": {
+          "type": "boolean",
+          "description": "Flag for recently published notices"
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500,
+          "description": "Brief summary of notice"
+        },
+        "content": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 5000,
+          "description": "Complete circular content"
+        },
+        "attachmentName": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "Optional circular attachment filename"
+        },
+        "attachmentUrl": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "Optional download link"
+        },
+        "targetAudience": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Target recipients"
+        }
+      },
+      "required": ["title", "category", "date", "summary", "content", "targetAudience"]
+    },
+    "AdmissionInquiry": {
+      "title": "Admission Inquiry",
+      "description": "Prospective student admission application submitted by parent or guardian.",
+      "type": "object",
+      "properties": {
+        "studentName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Child or applicant full name"
+        },
+        "parentName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Parent or guardian full name"
+        },
+        "phone": {
+          "type": "string",
+          "minLength": 7,
+          "maxLength": 20,
+          "description": "Contact phone number"
+        },
+        "email": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Parent email address"
+        },
+        "gradeApplying": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Grade / Class applying for"
+        },
+        "dateOfBirth": {
+          "type": "string",
+          "maxLength": 30,
+          "description": "Student date of birth"
+        },
+        "gender": {
+          "type": "string",
+          "maxLength": 20,
+          "description": "Student gender"
+        },
+        "previousSchool": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "Previous school attended"
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "Residence location or notes"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "contacted", "enrolled", "rejected"],
+          "description": "Status of the inquiry"
+        },
+        "createdAt": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Creation timestamp ISO string"
+        }
+      },
+      "required": ["studentName", "parentName", "phone", "gradeApplying"]
+    },
+    "ContactMessage": {
+      "title": "Contact Message",
+      "description": "Inquiry or feedback sent to school office by visitor or parent.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Sender full name"
+        },
+        "phone": {
+          "type": "string",
+          "minLength": 7,
+          "maxLength": 20,
+          "description": "Sender contact phone number"
+        },
+        "email": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Sender email address"
+        },
+        "subject": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Inquiry subject"
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "description": "Inquiry or feedback message"
+        },
+        "createdAt": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Creation timestamp ISO string"
+        }
+      },
+      "required": ["name", "phone", "subject", "message"]
+    }
+  },
+  "firestore": {
+    "/users/{firebaseUid}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User security and authorization profile linking Auth UID to role permissions."
+    },
+    "/students/{studentId}": {
+      "schema": { "$ref": "#/entities/Student" },
+      "description": "Master student official demographic and academic enrollment data."
+    },
+    "/fees/{feeId}": {
+      "schema": { "$ref": "#/entities/Fee" },
+      "description": "Student fee liabilities, due dates, and settlement status."
+    },
+    "/payments/{paymentId}": {
+      "schema": { "$ref": "#/entities/Payment" },
+      "description": "Direct payment transaction records for student fee settlements."
+    },
+    "/exams/{examId}": {
+      "schema": { "$ref": "#/entities/Exam" },
+      "description": "Examination terms, batches, and publication status."
+    },
+    "/results/{resultId}": {
+      "schema": { "$ref": "#/entities/Result" },
+      "description": "Student scorecards, subject grades, and published results."
+    },
+    "/notices/{noticeId}": {
+      "schema": { "$ref": "#/entities/Notice" },
+      "description": "Public school circulars, announcements, and examination notices."
+    },
+    "/inquiries/{inquiryId}": {
+      "schema": { "$ref": "#/entities/AdmissionInquiry" },
+      "description": "Parent admission inquiries submitted online."
+    },
+    "/contact_messages/{messageId}": {
+      "schema": { "$ref": "#/entities/ContactMessage" },
+      "description": "Visitor and parent inquiries submitted to school helpdesk."
+    }
+  }
+}

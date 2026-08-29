@@ -1,0 +1,206 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Common helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isDocumentIdValid(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function getUserDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function hasUserDoc() {
+      return isAuthenticated() && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function isUserActive() {
+      return hasUserDoc() && getUserDoc().active == true;
+    }
+
+    function getUserRole() {
+      return isUserActive() ? getUserDoc().role : '';
+    }
+
+    function isSuperAdmin() {
+      return isUserActive() && getUserRole() == 'super_admin';
+    }
+
+    function isStaff() {
+      return isUserActive() && (getUserRole() == 'staff' || getUserRole() == 'super_admin');
+    }
+
+    function isAccountant() {
+      return isUserActive() && (getUserRole() == 'accountant' || getUserRole() == 'super_admin');
+    }
+
+    function isExamEditor() {
+      return isUserActive() && (getUserRole() == 'exam_editor' || getUserRole() == 'super_admin');
+    }
+
+    function isStudent() {
+      return isUserActive() && getUserRole() == 'student';
+    }
+
+    function getStudentId() {
+      return hasUserDoc() ? getUserDoc().studentId : '';
+    }
+
+    // Input Validation Helpers for Public Leads
+    function isValidInquiry(data) {
+      return data.studentName is string && data.studentName.size() >= 1 && data.studentName.size() <= 100
+        && data.parentName is string && data.parentName.size() >= 1 && data.parentName.size() <= 100
+        && data.phone is string && data.phone.size() >= 7 && data.phone.size() <= 20
+        && data.gradeApplying is string && data.gradeApplying.size() >= 1 && data.gradeApplying.size() <= 100
+        && (!('email' in data) || (data.email is string && data.email.size() <= 100))
+        && (!('dateOfBirth' in data) || (data.dateOfBirth is string && data.dateOfBirth.size() <= 30))
+        && (!('gender' in data) || (data.gender is string && data.gender.size() <= 20))
+        && (!('previousSchool' in data) || (data.previousSchool is string && data.previousSchool.size() <= 200))
+        && (!('message' in data) || (data.message is string && data.message.size() <= 1000))
+        && (!('notes' in data) || (data.notes is string && data.notes.size() <= 2000))
+        && (!('status' in data) || (data.status is string && data.status in ['pending', 'contacted', 'enrolled', 'rejected']))
+        && (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 50))
+        && (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 50));
+    }
+
+    function isValidContactMessage(data) {
+      return data.name is string && data.name.size() >= 1 && data.name.size() <= 100
+        && data.phone is string && data.phone.size() >= 7 && data.phone.size() <= 20
+        && data.subject is string && data.subject.size() >= 1 && data.subject.size() <= 100
+        && data.message is string && data.message.size() >= 1 && data.message.size() <= 2000
+        && (!('email' in data) || (data.email is string && data.email.size() <= 100))
+        && (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 50));
+    }
+
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Connectivity verification test document
+    match /test/{testDocId} {
+      allow get: if true;
+    }
+
+    // ==========================================
+    // USERS COLLECTION (/users/{userId})
+    // ==========================================
+    match /users/{userId} {
+      // User can read their own profile, or staff/super_admin can view
+      allow get: if isAuthenticated() && (request.auth.uid == userId || isStaff() || isSuperAdmin());
+      allow list: if isStaff() || isSuperAdmin();
+
+      // Only super_admin can create or delete user authorization documents
+      allow create: if isSuperAdmin();
+      allow delete: if isSuperAdmin();
+
+      // Super admin can update everything; regular user can ONLY update mustChangePassword or updatedAt for their own record
+      allow update: if isSuperAdmin() || (
+        isAuthenticated() && request.auth.uid == userId && isUserActive()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['mustChangePassword', 'updatedAt'])
+      );
+    }
+
+    // ==========================================
+    // STUDENTS COLLECTION (/students/{studentId})
+    // ==========================================
+    match /students/{studentId} {
+      // Staff/Admins can read/list all students. Students can ONLY read their own student document.
+      allow get: if isStaff() || (isStudent() && getStudentId() == studentId);
+      allow list: if isStaff();
+
+      // Only staff / super_admin can create, update, or delete student records. Students CANNOT modify records.
+      allow write: if isStaff() || isSuperAdmin();
+    }
+
+    // ==========================================
+    // FEES COLLECTION (/fees/{feeId})
+    // ==========================================
+    match /fees/{feeId} {
+      // Accountants/Staff/Admins can read all fees. Student can read only their own fee records.
+      allow get: if isAccountant() || isStaff() || (isStudent() && resource.data.studentId == getStudentId());
+      allow list: if isAccountant() || isStaff() || isStudent();
+
+      // Only Accountants or Super Admin can create, modify, or delete fees. Students CANNOT write.
+      allow write: if isAccountant() || isSuperAdmin();
+    }
+
+    // ==========================================
+    // PAYMENTS COLLECTION (/payments/{paymentId})
+    // ==========================================
+    match /payments/{paymentId} {
+      // Accountants/Staff/Admins can read all payments. Student can read only their own receipts.
+      allow get: if isAccountant() || isStaff() || (isStudent() && resource.data.studentId == getStudentId());
+      allow list: if isAccountant() || isStaff() || isStudent();
+
+      // Only Accountants or Super Admin can record or alter payment transactions.
+      allow write: if isAccountant() || isSuperAdmin();
+    }
+
+    // ==========================================
+    // EXAMS COLLECTION (/exams/{examId})
+    // ==========================================
+    match /exams/{examId} {
+      // Exam Editors, Staff, Super Admin can read all exams.
+      // Students can read published exams.
+      allow get, list: if isExamEditor() || isStaff() || (isStudent() && resource.data.status == 'published');
+
+      // Only Exam Editors or Super Admin can create, update, or delete exam schedules.
+      allow write: if isExamEditor() || isSuperAdmin();
+    }
+
+    // ==========================================
+    // RESULTS COLLECTION (/results/{resultId})
+    // ==========================================
+    match /results/{resultId} {
+      // Exam Editors, Staff, Super Admin can read all results.
+      // Students can read ONLY their own result if published == true.
+      allow get: if isExamEditor() || isStaff() || (isStudent() && resource.data.studentId == getStudentId() && resource.data.published == true);
+      allow list: if isExamEditor() || isStaff() || isStudent();
+
+      // Only Exam Editors or Super Admin can publish or write results. Students CANNOT modify.
+      allow write: if isExamEditor() || isSuperAdmin();
+    }
+
+    // ==========================================
+    // SYSTEM CONFIG & LOCKS (/system/{docId})
+    // ==========================================
+    match /system/{docId} {
+      // Readable only by Super Admin; completely forbidden to client-side write (server-only)
+      allow get: if isSuperAdmin();
+      allow list, write: if false;
+    }
+
+    // ==========================================
+    // PUBLIC NOTICES (/notices/{noticeId})
+    // ==========================================
+    match /notices/{noticeId} {
+      allow get, list: if true;
+      allow write: if isStaff() || isSuperAdmin();
+    }
+
+    // ==========================================
+    // ADMISSION INQUIRIES (/inquiries/{inquiryId})
+    // ==========================================
+    match /inquiries/{inquiryId} {
+      allow create: if isDocumentIdValid(inquiryId) && isValidInquiry(request.resource.data);
+      allow get, list: if isStaff() || isSuperAdmin();
+      allow update, delete: if isStaff() || isSuperAdmin();
+    }
+
+    // ==========================================
+    // CONTACT MESSAGES (/contact_messages/{messageId})
+    // ==========================================
+    match /contact_messages/{messageId} {
+      allow create: if isDocumentIdValid(messageId) && isValidContactMessage(request.resource.data);
+      allow get, list: if isStaff() || isSuperAdmin();
+      allow update, delete: if isStaff() || isSuperAdmin();
+    }
+  }
+}

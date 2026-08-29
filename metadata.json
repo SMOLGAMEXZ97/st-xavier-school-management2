@@ -1,0 +1,8 @@
+{
+  "name": "St. Xavier High School, Tihidi",
+  "description": "Official responsive portal for St. Xavier High School, Tihidi, Bhadrak, Odisha featuring About, Academics, Faculty, Gallery, Notices, and Admissions.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
