@@ -128,4 +128,84 @@
   background: rgba(100, 116, 139, 0.9);
 }
 
+/* Institutional Report Print Rules */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm 10mm 10mm 10mm;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    background-image: none !important;
+    color: #0f172a !important;
+    font-size: 9pt !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide admin header, sidebar, non-print UI, action buttons, filter bars */
+  header,
+  aside,
+  nav,
+  button,
+  input,
+  select,
+  .no-print,
+  .glass-blob {
+    display: none !important;
+  }
+
+  /* Ensure containers take full printable width */
+  main,
+  .max-w-7xl,
+  #student-report-container,
+  #fee-report-container,
+  #payment-report-container,
+  #admissions-report-container,
+  #academic-report-container {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: transparent !important;
+  }
+
+  /* Table styling */
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    font-size: 8.5pt !important;
+  }
+
+  thead {
+    display: table-header-group !important;
+  }
+
+  tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  th {
+    background-color: #f8fafc !important;
+    color: #0f172a !important;
+    border: 1px solid #cbd5e1 !important;
+    padding: 5px 6px !important;
+    font-weight: 700 !important;
+    font-size: 8pt !important;
+  }
+
+  td {
+    border: 1px solid #e2e8f0 !important;
+    padding: 4.5px 6px !important;
+    color: #1e293b !important;
+    font-size: 8pt !important;
+  }
+}
+
 

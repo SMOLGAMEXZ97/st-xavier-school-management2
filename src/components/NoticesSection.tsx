@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { noticeService } from '../services/noticeService';
 import { Notice } from '../types';
+import { formatDateToDisplay } from '../utils/dateUtils';
 
 export const NoticesSection: React.FC = () => {
   const [notices, setNotices] = useState<Notice[]>([]);
@@ -30,8 +31,7 @@ export const NoticesSection: React.FC = () => {
         setNotices(data);
         setLoading(false);
       },
-      (err) => {
-        console.warn('Live notices subscription error:', err);
+      () => {
         setLoading(false);
       }
     );
@@ -41,7 +41,7 @@ export const NoticesSection: React.FC = () => {
     };
   }, []);
 
-  const categories = ['All', 'Academics', 'Examinations', 'Events', 'Holidays', 'Circulars'];
+  const categories = ['All', 'Academics', 'Examinations', 'Events', 'Holidays', 'Circulars', 'General'];
 
   const filteredNotices = notices.filter((notice) => {
     const matchesCategory =
@@ -194,7 +194,7 @@ export const NoticesSection: React.FC = () => {
                   {/* Notice Date */}
                   <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium mb-2">
                     <Calendar className="w-3.5 h-3.5 text-blue-700" />
-                    <span>Published: {notice.date}</span>
+                    <span>Published: {formatDateToDisplay(notice.date) || notice.date}</span>
                   </div>
 
                   {/* Notice Title */}
@@ -251,7 +251,7 @@ export const NoticesSection: React.FC = () => {
                     )}
                     <span className="text-xs text-slate-500 flex items-center gap-1 font-medium">
                       <Calendar className="w-3.5 h-3.5 text-blue-700" />
-                      <span>{activeNoticeModal.date}</span>
+                      <span>{formatDateToDisplay(activeNoticeModal.date) || activeNoticeModal.date}</span>
                     </span>
                   </div>
                   <h3 className="font-serif font-bold text-xl sm:text-2xl text-slate-900 leading-snug">

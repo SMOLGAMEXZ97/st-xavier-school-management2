@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
+import { getFirestore, doc, getDoc } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
 
 // Initialize Firebase App singleton
@@ -66,15 +66,38 @@ export function handleFirestoreError(
   throw new Error(JSON.stringify(errInfo));
 }
 
+/**
+ * Recursively removes any undefined keys or nested undefined values from an object
+ * before submitting to Firestore, guaranteeing Firestore never throws
+ * "Unsupported field value: undefined".
+ */
+export function cleanFirestoreData<T>(obj: T): T {
+  if (obj === null || obj === undefined) {
+    return obj;
+  }
+  if (Array.isArray(obj)) {
+    return obj
+      .filter((item) => item !== undefined)
+      .map((item) => (typeof item === 'object' && item !== null ? cleanFirestoreData(item) : item)) as unknown as T;
+  }
+  if (typeof obj === 'object') {
+    const cleaned: Record<string, any> = {};
+    for (const [key, value] of Object.entries(obj)) {
+      if (value !== undefined) {
+        cleaned[key] = typeof value === 'object' && value !== null ? cleanFirestoreData(value) : value;
+      }
+    }
+    return cleaned as T;
+  }
+  return obj;
+}
+
 // Test initial connection to Firestore
 export async function testFirestoreConnection(): Promise<boolean> {
   try {
-    await getDocFromServer(doc(db, 'test', 'connection'));
+    await getDoc(doc(db, 'test', 'connection'));
     return true;
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('the client is offline')) {
-      console.warn('Firebase client is offline or initial connection check returned offline.');
-    }
+  } catch {
     return false;
   }
 }

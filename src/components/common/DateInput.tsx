@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { AlertCircle } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { AlertCircle, Calendar as CalendarIcon } from 'lucide-react';
 import {
   formatAsDateInput,
   parseDateParts,
@@ -22,6 +22,8 @@ interface DateInputProps {
   helperText?: string;
   minYear?: number;
   maxYear?: number;
+  size?: 'sm' | 'md';
+  showCalendarButton?: boolean;
 }
 
 export const DateInput: React.FC<DateInputProps> = ({
@@ -30,7 +32,7 @@ export const DateInput: React.FC<DateInputProps> = ({
   value = '',
   onChange,
   onBlur,
-  placeholder = 'DD/MM/YYYY (e.g. 03/02/2015)',
+  placeholder = 'DD/MM/YYYY',
   required = false,
   disabled = false,
   className = '',
@@ -39,9 +41,12 @@ export const DateInput: React.FC<DateInputProps> = ({
   helperText,
   minYear = 1990,
   maxYear = 2035,
+  size = 'md',
+  showCalendarButton = true,
 }) => {
   const [displayValue, setDisplayValue] = useState<string>(() => formatDateToDisplay(value));
   const [internalError, setInternalError] = useState<string | null>(null);
+  const nativePickerRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const formatted = formatDateToDisplay(value);
@@ -59,7 +64,7 @@ export const DateInput: React.FC<DateInputProps> = ({
     if (!parts) {
       // Incomplete typing
       if (inputValue.replace(/\D/g, '').length < 8) {
-        setInternalError('Please complete the full 8-digit date (DD/MM/YYYY)');
+        setInternalError('Please enter full date (DD/MM/YYYY)');
       } else {
         setInternalError('Invalid date format. Use DD/MM/YYYY');
       }
@@ -69,11 +74,11 @@ export const DateInput: React.FC<DateInputProps> = ({
 
     if (!parts.isValid) {
       if (parts.month < 1 || parts.month > 12) {
-        setInternalError(`Invalid month (${parts.month}). Month must be between 01 and 12.`);
+        setInternalError(`Invalid month (${parts.month}).`);
       } else if (parts.day < 1 || parts.day > 31) {
         setInternalError(`Invalid day (${parts.day}).`);
       } else {
-        setInternalError(`Invalid date (${inputValue}): Day ${parts.day} does not exist in month ${parts.month}.`);
+        setInternalError(`Invalid date (${inputValue}).`);
       }
       onChange(inputValue, '');
       return;
@@ -94,7 +99,7 @@ export const DateInput: React.FC<DateInputProps> = ({
 
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value;
-    // Auto format progressive typing (e.g. 03022015 -> 03/02/2015)
+    // Auto format progressive typing (e.g. 01082026 -> 01/08/2026)
     const formatted = formatAsDateInput(raw);
     setDisplayValue(formatted);
 
@@ -112,7 +117,34 @@ export const DateInput: React.FC<DateInputProps> = ({
     if (onBlur) onBlur();
   };
 
+  const handleNativePickerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const isoValue = e.target.value; // YYYY-MM-DD
+    if (!isoValue) return;
+    const formatted = formatDateToDisplay(isoValue);
+    setDisplayValue(formatted);
+    setInternalError(null);
+    onChange(formatted, isoValue);
+  };
+
+  const openCalendarPicker = () => {
+    if (disabled) return;
+    try {
+      if (nativePickerRef.current) {
+        if ('showPicker' in HTMLInputElement.prototype) {
+          (nativePickerRef.current as any).showPicker();
+        } else {
+          nativePickerRef.current.focus();
+        }
+      }
+    } catch {
+      nativePickerRef.current?.focus();
+    }
+  };
+
   const activeError = error || internalError;
+  const currentISO = formatDateToISO(displayValue);
+
+  const paddingClasses = size === 'sm' ? 'px-2.5 py-1.5 text-xs' : 'px-3 py-2 text-sm';
 
   return (
     <div className="w-full">
@@ -135,11 +167,39 @@ export const DateInput: React.FC<DateInputProps> = ({
           onBlur={handleBlur}
           disabled={disabled}
           placeholder={placeholder}
-          className={`w-full px-3 py-2 text-sm bg-white text-slate-900 placeholder:text-slate-400 border rounded-lg focus:bg-white focus:ring-2 outline-none font-medium ${
+          className={`w-full ${paddingClasses} ${
+            showCalendarButton ? 'pr-8' : ''
+          } bg-white text-slate-900 placeholder:text-slate-400 border rounded-lg focus:bg-white focus:ring-2 outline-none font-medium transition-all ${
             activeError
               ? 'border-rose-400 focus:ring-rose-500 focus:border-rose-500 bg-rose-50/30'
               : 'border-slate-300 focus:ring-blue-900/20 focus:border-blue-900'
           } ${disabled ? 'opacity-60 cursor-not-allowed bg-slate-50' : ''} ${className}`}
+        />
+
+        {showCalendarButton && (
+          <button
+            type="button"
+            tabIndex={-1}
+            onClick={openCalendarPicker}
+            disabled={disabled}
+            className="absolute right-2 text-slate-400 hover:text-slate-700 disabled:opacity-40 p-0.5 rounded transition-colors"
+            title="Open calendar picker"
+            aria-label="Open calendar picker"
+          >
+            <CalendarIcon className={size === 'sm' ? 'w-3.5 h-3.5' : 'w-4 h-4'} />
+          </button>
+        )}
+
+        {/* Hidden native date input synced to current ISO */}
+        <input
+          ref={nativePickerRef}
+          type="date"
+          tabIndex={-1}
+          aria-hidden="true"
+          value={currentISO || ''}
+          onChange={handleNativePickerChange}
+          disabled={disabled}
+          className="sr-only"
         />
       </div>
 
@@ -154,3 +214,4 @@ export const DateInput: React.FC<DateInputProps> = ({
     </div>
   );
 };
+

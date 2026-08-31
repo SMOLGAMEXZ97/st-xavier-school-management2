@@ -16,7 +16,6 @@ import { StudentLogin } from './components/auth/StudentLogin';
 import { StudentDashboard } from './components/dashboard/StudentDashboard';
 import { AdminDashboard } from './components/dashboard/AdminDashboard';
 import { useAuth } from './context/AuthContext';
-import { testFirestoreConnection } from './services/firebase';
 import { Loader2 } from 'lucide-react';
 
 type RouteView = 'public' | 'student-login' | 'admin-login' | 'student-dashboard' | 'admin-dashboard';
@@ -92,13 +91,6 @@ export default function App() {
       }
     }
   };
-
-  // Validate Firestore connection on boot
-  useEffect(() => {
-    testFirestoreConnection().catch((err) => {
-      console.warn('Initial Firestore validation:', err);
-    });
-  }, []);
 
   // Smooth scroll to section
   const handleNavigate = (sectionId: string) => {

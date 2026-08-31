@@ -151,8 +151,8 @@ service cloud.firestore {
       // Students can read published exams.
       allow get, list: if isExamEditor() || isStaff() || (isStudent() && resource.data.status == 'published');
 
-      // Only Exam Editors or Super Admin can create, update, or delete exam schedules.
-      allow write: if isExamEditor() || isSuperAdmin();
+      // Only Exam Editors, Staff or Super Admin can create, update, or delete exam schedules.
+      allow write: if isExamEditor() || isStaff() || isSuperAdmin();
     }
 
     // ==========================================
@@ -164,8 +164,8 @@ service cloud.firestore {
       allow get: if isExamEditor() || isStaff() || (isStudent() && resource.data.studentId == getStudentId() && resource.data.published == true);
       allow list: if isExamEditor() || isStaff() || isStudent();
 
-      // Only Exam Editors or Super Admin can publish or write results. Students CANNOT modify.
-      allow write: if isExamEditor() || isSuperAdmin();
+      // Only Exam Editors, Staff or Super Admin can publish or write results. Students CANNOT modify.
+      allow write: if isExamEditor() || isStaff() || isSuperAdmin();
     }
 
     // ==========================================

@@ -195,3 +195,98 @@ export function formatAsDateInput(rawValue: string): string {
   }
   return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4, 8)}`;
 }
+
+/**
+ * Checks if a given target date falls inclusively within [fromISO, toISO].
+ * Handles various date formats (DD/MM/YYYY, YYYY-MM-DD, ISO string, Date object).
+ * Uses timezone-safe string comparison on the YYYY-MM-DD date components.
+ */
+export function isDateInRange(
+  targetDate?: string | null | Date,
+  fromISO?: string | null,
+  toISO?: string | null
+): boolean {
+  // If no date range filter is active, all items match
+  const hasFrom = Boolean(fromISO && fromISO.trim().length >= 10);
+  const hasTo = Boolean(toISO && toISO.trim().length >= 10);
+
+  if (!hasFrom && !hasTo) {
+    return true;
+  }
+
+  // If date filter is active, items with no date cannot match
+  if (!targetDate) {
+    return false;
+  }
+
+  const rawStr = targetDate instanceof Date ? targetDate.toISOString() : String(targetDate).trim();
+  if (!rawStr) return false;
+
+  const targetISO = formatDateToISO(rawStr);
+  if (!targetISO || targetISO.length < 10) return false;
+
+  const targetDay = targetISO.slice(0, 10);
+
+  if (hasFrom && fromISO) {
+    const fromDay = fromISO.trim().slice(0, 10);
+    if (targetDay < fromDay) return false;
+  }
+
+  if (hasTo && toISO) {
+    const toDay = toISO.trim().slice(0, 10);
+    if (targetDay > toDay) return false;
+  }
+
+  return true;
+}
+
+/**
+ * Validates whether From Date is later than To Date.
+ * Returns true if From Date > To Date (invalid range), false otherwise.
+ */
+export function isFromDateAfterToDate(fromISO?: string | null, toISO?: string | null): boolean {
+  if (!fromISO || !toISO) return false;
+  const f = fromISO.trim().slice(0, 10);
+  const t = toISO.trim().slice(0, 10);
+  if (f.length === 10 && t.length === 10) {
+    return f > t;
+  }
+  return false;
+}
+
+/**
+ * Formats an active date range into a user-friendly string for display or print headers.
+ * Example: "01/08/2026 – 31/08/2026", "From 01/08/2026", "Up to 31/08/2026"
+ */
+export function formatDateRangeDisplay(fromDate?: string | null, toDate?: string | null): string {
+  const f = (fromDate || '').trim();
+  const t = (toDate || '').trim();
+
+  if (f && t) {
+    if (f === t) return `On ${f}`;
+    return `${f} – ${t}`;
+  }
+  if (f) return `From ${f}`;
+  if (t) return `Up to ${t}`;
+  return '';
+}
+
+/**
+ * Creates a clean safe filename suffix from date range (e.g. "_01082026_to_31082026")
+ */
+export function getDateRangeFileSuffix(fromDate?: string | null, toDate?: string | null): string {
+  const fDigits = (fromDate || '').replace(/\D/g, '');
+  const tDigits = (toDate || '').replace(/\D/g, '');
+
+  if (fDigits && tDigits) {
+    return `_${fDigits}_to_${tDigits}`;
+  }
+  if (fDigits) {
+    return `_from_${fDigits}`;
+  }
+  if (tDigits) {
+    return `_up_to_${tDigits}`;
+  }
+  return '';
+}
+

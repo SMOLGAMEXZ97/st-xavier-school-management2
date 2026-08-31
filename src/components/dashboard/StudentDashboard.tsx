@@ -24,6 +24,9 @@ import { studentService } from '../../services/studentService';
 import { ChangePasswordModal } from '../auth/ChangePasswordModal';
 import { SchoolLogo } from '../SchoolLogo';
 import { formatDateToDisplay } from '../../utils/dateUtils';
+import { StudentNoticesView } from './students/StudentNoticesView';
+import { StudentFeeLedgerView } from './fees/StudentFeeLedgerView';
+import { StudentResultsView } from './examinations/StudentResultsView';
 
 interface StudentDashboardProps {
   onNavigateHome: () => void;
@@ -363,84 +366,14 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({ onNavigateHo
           )}
 
           {/* TAB 2: FEES & INVOICES */}
-          {activeTab === 'fees' && (
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-5 border-b border-slate-100">
-                <div>
-                  <h2 className="text-base font-bold text-slate-900 font-serif flex items-center gap-2">
-                    <CreditCard className="w-5 h-5 text-blue-900" />
-                    Fee Ledger & Assessment Records
-                  </h2>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    View student fee breakdown, due dates, and settlement receipts.
-                  </p>
-                </div>
-              </div>
-
-              {/* Placeholder / Empty State */}
-              <div className="p-8 text-center bg-slate-50 rounded-xl border border-slate-200/80">
-                <CreditCard className="w-10 h-10 text-slate-400 mx-auto mb-3" />
-                <h3 className="text-sm font-bold text-slate-800 font-serif">Fee Ledger Connected</h3>
-                <p className="text-xs text-slate-500 max-w-md mx-auto mt-1">
-                  Individual student fee assessments and payment records are secured through Firestore authorization rules under <code className="text-[11px] bg-slate-200 px-1 py-0.5 rounded">/fees</code> and <code className="text-[11px] bg-slate-200 px-1 py-0.5 rounded">/payments</code>.
-                </p>
-                <div className="mt-4 inline-flex items-center gap-2 text-xs text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  No overdue fees recorded for current term
-                </div>
-              </div>
-            </div>
-          )}
+          {activeTab === 'fees' && <StudentFeeLedgerView student={studentData} />}
 
           {/* TAB 3: RESULTS */}
-          {activeTab === 'results' && (
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-5 border-b border-slate-100">
-                <div>
-                  <h2 className="text-base font-bold text-slate-900 font-serif flex items-center gap-2">
-                    <GraduationCap className="w-5 h-5 text-blue-900" />
-                    Official Examination Scorecards
-                  </h2>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Published term report cards and subject grade breakdowns.
-                  </p>
-                </div>
-              </div>
-
-              {/* Placeholder State */}
-              <div className="p-8 text-center bg-slate-50 rounded-xl border border-slate-200/80">
-                <GraduationCap className="w-10 h-10 text-slate-400 mx-auto mb-3" />
-                <h3 className="text-sm font-bold text-slate-800 font-serif">Scorecard Database Ready</h3>
-                <p className="text-xs text-slate-500 max-w-md mx-auto mt-1">
-                  Examination results are published by the Exam Editor and filtered strictly for your student ID via security rules under <code className="text-[11px] bg-slate-200 px-1 py-0.5 rounded">/results</code>.
-                </p>
-              </div>
-            </div>
-          )}
+          {activeTab === 'results' && <StudentResultsView student={studentData} />}
 
           {/* TAB 4: NOTICES */}
           {activeTab === 'notices' && (
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-              <div className="pb-4 mb-5 border-b border-slate-100">
-                <h2 className="text-base font-bold text-slate-900 font-serif flex items-center gap-2">
-                  <Bell className="w-5 h-5 text-blue-900" />
-                  Student Circulars & Academic Notices
-                </h2>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Official announcements broadcast by school administration.
-                </p>
-              </div>
-
-              <div className="p-6 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600 space-y-3">
-                <p className="leading-relaxed">
-                  Real-time school notices are synchronized with the Firestore notice board. All student circulars, examination schedules, and holiday announcements are delivered here.
-                </p>
-                <div className="p-3 bg-white rounded-lg border border-slate-200 text-slate-700 flex gap-3 items-center">
-                  <Clock className="w-4 h-4 text-blue-600 shrink-0" />
-                  <span>Regular academic classes commence promptly at 08:30 AM every morning.</span>
-                </div>
-              </div>
-            </div>
+            <StudentNoticesView />
           )}
 
           {/* TAB 5: DOCUMENTS */}

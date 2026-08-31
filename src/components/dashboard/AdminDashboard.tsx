@@ -23,8 +23,13 @@ import { UserRole } from '../../types';
 import { ChangePasswordModal } from '../auth/ChangePasswordModal';
 import { SchoolLogo } from '../SchoolLogo';
 import { StudentManagementModule } from './students/StudentManagementModule';
+import { GuardianDirectoryModule } from './guardians/GuardianDirectoryModule';
+import { FeeManagementModule } from './fees/FeeManagementModule';
 import { StaffManagementModule } from './StaffManagementModule';
 import { AdmissionsDeskModule } from './admissions/AdmissionsDeskModule';
+import { NoticeManagementModule } from './notices/NoticeManagementModule';
+import { ExaminationManagementModule } from './examinations/ExaminationManagementModule';
+import { ReportsAnalyticsModule } from './reports/ReportsAnalyticsModule';
 
 interface AdminDashboardProps {
   onNavigateHome: () => void;
@@ -77,21 +82,21 @@ const ALL_TABS: TabConfig[] = [
     id: 'fees',
     label: 'Fee Ledgers',
     icon: CreditCard,
-    allowedRoles: ['super_admin', 'accountant'],
+    allowedRoles: ['super_admin', 'staff', 'accountant'],
     description: 'Student fee assessments & dues',
   },
   {
     id: 'payments',
     label: 'Payments & Receipts',
     icon: Receipt,
-    allowedRoles: ['super_admin', 'accountant'],
+    allowedRoles: ['super_admin', 'staff', 'accountant'],
     description: 'Payment transactions and settlement logs',
   },
   {
     id: 'examination',
     label: 'Examinations',
     icon: GraduationCap,
-    allowedRoles: ['super_admin', 'exam_editor'],
+    allowedRoles: ['super_admin', 'exam_editor', 'staff'],
     description: 'Exams, marks entry, and scorecards',
   },
   {
@@ -310,118 +315,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome }
           {activeTab === 'students' && <StudentManagementModule />}
 
           {/* TAB: GUARDIANS */}
-          {activeTab === 'guardians' && (
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-              <div className="pb-4 mb-5 border-b border-slate-100">
-                <h2 className="text-base font-bold text-slate-900 font-serif flex items-center gap-2">
-                  <UserCheck className="w-5 h-5 text-blue-900" />
-                  Guardians & Contact Directory
-                </h2>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Emergency contact and guardian communication directory.
-                </p>
-              </div>
-
-              <div className="p-8 text-center bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600">
-                <UserCheck className="w-10 h-10 text-slate-400 mx-auto mb-3" />
-                <h3 className="text-sm font-bold text-slate-800 font-serif">Guardian Directory Ready</h3>
-                <p className="text-xs text-slate-500 max-w-md mx-auto mt-1">
-                  Guardian names, emergency phone numbers, and communication emails are linked to each student record.
-                </p>
-              </div>
-            </div>
-          )}
+          {activeTab === 'guardians' && <GuardianDirectoryModule />}
 
           {/* TAB: FEES */}
-          {activeTab === 'fees' && (
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-              <div className="pb-4 mb-5 border-b border-slate-100">
-                <h2 className="text-base font-bold text-slate-900 font-serif flex items-center gap-2">
-                  <CreditCard className="w-5 h-5 text-blue-900" />
-                  Fee Ledger Management
-                </h2>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Student fee structures and dues stored under <code className="bg-slate-100 px-1 py-0.5 rounded text-[11px]">/fees</code>
-                </p>
-              </div>
-
-              <div className="p-8 text-center bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600">
-                <CreditCard className="w-10 h-10 text-slate-400 mx-auto mb-3" />
-                <h3 className="text-sm font-bold text-slate-800 font-serif">Accountant Module Activated</h3>
-                <p className="text-xs text-slate-500 max-w-md mx-auto mt-1">
-                  Secured exclusively for Accountants and Super Admins. Students cannot tamper with or modify due amounts.
-                </p>
-              </div>
-            </div>
-          )}
+          {activeTab === 'fees' && <FeeManagementModule />}
 
           {/* TAB: PAYMENTS */}
-          {activeTab === 'payments' && (
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-              <div className="pb-4 mb-5 border-b border-slate-100">
-                <h2 className="text-base font-bold text-slate-900 font-serif flex items-center gap-2">
-                  <Receipt className="w-5 h-5 text-blue-900" />
-                  Payment Transactions & Receipts
-                </h2>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Financial transactions logged under <code className="bg-slate-100 px-1 py-0.5 rounded text-[11px]">/payments</code>
-                </p>
-              </div>
-
-              <div className="p-8 text-center bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600">
-                <Receipt className="w-10 h-10 text-slate-400 mx-auto mb-3" />
-                <h3 className="text-sm font-bold text-slate-800 font-serif">Payment Ledger Ready</h3>
-                <p className="text-xs text-slate-500 max-w-md mx-auto mt-1">
-                  Individual transactions record transaction IDs, payment methods (Cash, UPI, Bank), timestamps, and linked fee IDs.
-                </p>
-              </div>
-            </div>
-          )}
+          {activeTab === 'payments' && <FeeManagementModule />}
 
           {/* TAB: EXAMINATIONS */}
-          {activeTab === 'examination' && (
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-              <div className="pb-4 mb-5 border-b border-slate-100">
-                <h2 className="text-base font-bold text-slate-900 font-serif flex items-center gap-2">
-                  <GraduationCap className="w-5 h-5 text-blue-900" />
-                  Examination Management & Report Cards
-                </h2>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Exams and results stored under <code className="bg-slate-100 px-1 py-0.5 rounded text-[11px]">/exams</code> and <code className="bg-slate-100 px-1 py-0.5 rounded text-[11px]">/results</code>
-                </p>
-              </div>
-
-              <div className="p-8 text-center bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600">
-                <GraduationCap className="w-10 h-10 text-slate-400 mx-auto mb-3" />
-                <h3 className="text-sm font-bold text-slate-800 font-serif">Exam Editor Module Activated</h3>
-                <p className="text-xs text-slate-500 max-w-md mx-auto mt-1">
-                  Restricted to Exam Editors and Super Admins. Draft scores remain hidden from students until marked published.
-                </p>
-              </div>
-            </div>
-          )}
+          {activeTab === 'examination' && <ExaminationManagementModule />}
 
           {/* TAB: NOTICES */}
           {activeTab === 'notices' && (
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-              <div className="pb-4 mb-5 border-b border-slate-100">
-                <h2 className="text-base font-bold text-slate-900 font-serif flex items-center gap-2">
-                  <Bell className="w-5 h-5 text-blue-900" />
-                  Notice Board Administration
-                </h2>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Manage public and academic notices under <code className="bg-slate-100 px-1 py-0.5 rounded text-[11px]">/notices</code>
-                </p>
-              </div>
-
-              <div className="p-8 text-center bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600">
-                <Bell className="w-10 h-10 text-slate-400 mx-auto mb-3" />
-                <h3 className="text-sm font-bold text-slate-800 font-serif">Notice Board Controls</h3>
-                <p className="text-xs text-slate-500 max-w-md mx-auto mt-1">
-                  Notices can be published by authorized Staff and Super Administrators to broadcast in real-time to the portal.
-                </p>
-              </div>
-            </div>
+            <NoticeManagementModule />
           )}
 
           {/* TAB: ADMISSIONS */}
@@ -431,25 +338,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome }
 
           {/* TAB: REPORTS */}
           {activeTab === 'reports' && (
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-              <div className="pb-4 mb-5 border-b border-slate-100">
-                <h2 className="text-base font-bold text-slate-900 font-serif flex items-center gap-2">
-                  <BarChart3 className="w-5 h-5 text-blue-900" />
-                  Institutional Reports & Data Summaries
-                </h2>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Academic, financial, and attendance analytics
-                </p>
-              </div>
-
-              <div className="p-8 text-center bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600">
-                <BarChart3 className="w-10 h-10 text-slate-400 mx-auto mb-3" />
-                <h3 className="text-sm font-bold text-slate-800 font-serif">Reports Workspace</h3>
-                <p className="text-xs text-slate-500 max-w-md mx-auto mt-1">
-                  Analytics queries will aggregate fee reconciliations, examination grade distributions, and enrollment metrics.
-                </p>
-              </div>
-            </div>
+            <ReportsAnalyticsModule currentRole={currentRole} />
           )}
 
           {/* TAB: STAFF MANAGEMENT */}
